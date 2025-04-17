@@ -6,18 +6,83 @@
   <title>File Upload</title>
   <style>
     /* Basic styles for file uploader */
-    body { font-family: Arial, sans-serif; }
-    .upload-container { width: 300px; margin: auto; padding: 20px; border: 1px solid #ccc; }
-    .upload-button { display: block; margin: 10px 0; }
-    .progress { width: 100%; height: 20px; background-color: #f3f3f3; }
-    .progress-bar { height: 100%; width: 0; background-color: green; }
-    .status { margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .upload-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h3 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #file-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .upload-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-transform: uppercase;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .upload-button:hover {
+      background-color: #45a049;
+    }
+
+    .progress {
+      width: 100%;
+      height: 20px;
+      background-color: #f3f3f3;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background-color: #4CAF50;
+      border-radius: 5px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+    }
   </style>
 </head>
 <body>
 
   <div class="upload-container">
-    <h3>Upload File</h3>
+    <h3>Upload File to Google Drive</h3>
     <input type="file" id="file-input" />
     <button class="upload-button" onclick="uploadFile()">Upload</button>
     <div class="progress">
@@ -27,8 +92,10 @@
   </div>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyDzyFph_006MC6vjxGrXnU1jdU42S15NdP7wx2HYEfdr9amNCH0tdAi_t59g3jA4pLGA/exec';  // Replace with your Google Apps Script URL
+    // Google Apps Script URL to handle the file upload
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyDzyFph_006MC6vjxGrXnU1jdU42S15NdP7wx2HYEfdr9amNCH0tdAi_t59g3jA4pLGA/exec';
 
+    // Function to handle file upload
     function uploadFile() {
       const fileInput = document.getElementById('file-input');
       const file = fileInput.files[0]; // Get the file selected by the user
@@ -58,9 +125,17 @@
       xhr.onload = function() {
         if (xhr.status === 200) {
           document.getElementById('status').textContent = 'File uploaded successfully!';
+          document.getElementById('status').style.color = 'green';
         } else {
           document.getElementById('status').textContent = 'Upload failed.';
+          document.getElementById('status').style.color = 'red';
         }
+      };
+
+      // Handle error
+      xhr.onerror = function() {
+        document.getElementById('status').textContent = 'There was an error during the upload.';
+        document.getElementById('status').style.color = 'red';
       };
 
       // Send the form data (the file)
