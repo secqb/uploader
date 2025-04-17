@@ -1,29 +1,72 @@
 <!DOCTYPE html>
-<!-- Coding By CodingNepal - www.codingnepalweb.com -->
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Uploader JavaScript | CodingNepal</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Linking Box Icon for Icons -->
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-    <script src="script.js" defer></script>
-  </head>
-  <body>
-    <div class="file-uploader">
-      <div class="uploader-header">
-        <h2 class="uploader-title">File Uploader</h2>
-        <h4 class="file-completed-status"></h4>
-      </div>
-      <ul class="file-list"></ul>
-      <div class="file-upload-box">
-        <h2 class="box-title">
-          <span class="file-instruction">Drag files here or</span>
-          <span class="file-browse-button">browse</span>
-        </h2>
-        <input class="file-browse-input" type="file" multiple hidden>
-      </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload</title>
+  <style>
+    /* Basic styles for file uploader */
+    body { font-family: Arial, sans-serif; }
+    .upload-container { width: 300px; margin: auto; padding: 20px; border: 1px solid #ccc; }
+    .upload-button { display: block; margin: 10px 0; }
+    .progress { width: 100%; height: 20px; background-color: #f3f3f3; }
+    .progress-bar { height: 100%; width: 0; background-color: green; }
+    .status { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="upload-container">
+    <h3>Upload File</h3>
+    <input type="file" id="file-input" />
+    <button class="upload-button" onclick="uploadFile()">Upload</button>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar"></div>
     </div>
-  </body>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyDzyFph_006MC6vjxGrXnU1jdU42S15NdP7wx2HYEfdr9amNCH0tdAi_t59g3jA4pLGA/exec';  // Replace with your Google Apps Script URL
+
+    function uploadFile() {
+      const fileInput = document.getElementById('file-input');
+      const file = fileInput.files[0]; // Get the file selected by the user
+
+      if (!file) {
+        alert('Please select a file.');
+        return;
+      }
+
+      // Create a new FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', file); // Add file to form data
+      formData.append('filename', file.name); // Add the file's name
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', endpoint, true);
+
+      // Show upload progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
+          document.getElementById('progress-bar').style.width = percent + '%';
+        }
+      });
+
+      // Handle success and error
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          document.getElementById('status').textContent = 'File uploaded successfully!';
+        } else {
+          document.getElementById('status').textContent = 'Upload failed.';
+        }
+      };
+
+      // Send the form data (the file)
+      xhr.send(formData);
+    }
+  </script>
+
+</body>
 </html>
