@@ -1,147 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Upload</title>
-  <style>
-    /* Basic styles for file uploader */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .upload-container {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    h3 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-
-    #file-input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      background-color: #f9f9f9;
-    }
-
-    .upload-button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      text-transform: uppercase;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .upload-button:hover {
-      background-color: #45a049;
-    }
-
-    .progress {
-      width: 100%;
-      height: 20px;
-      background-color: #f3f3f3;
-      margin-top: 20px;
-      border-radius: 5px;
-    }
-
-    .progress-bar {
-      height: 100%;
-      width: 0;
-      background-color: #4CAF50;
-      border-radius: 5px;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #555;
-    }
-  </style>
+  <title>File Uploader</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-
-  <div class="upload-container">
-    <h3>Upload File to Google Drive</h3>
-    <input type="file" id="file-input" />
-    <button class="upload-button" onclick="uploadFile()">Upload</button>
-    <div class="progress">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-    <div class="status" id="status"></div>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="mb-4">📁 File Uploader</h2>
+    <form id="uploadForm">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Registration ID</label>
+        <input name="regid" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Upload Files</label>
+        <input type="file" id="files" class="form-control" multiple required>
+      </div>
+      <div id="progress" class="mb-3 text-primary"></div>
+      <button type="submit" class="btn btn-primary">Upload</button>
+      <div id="responseMsg" class="mt-3"></div>
+    </form>
   </div>
 
   <script>
-    // Google Apps Script URL to handle the file upload
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyDzyFph_006MC6vjxGrXnU1jdU42S15NdP7wx2HYEfdr9amNCH0tdAi_t59g3jA4pLGA/exec';
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw5_QswoceCoeJfH1QzsmGFQZ67FZuvblw-SZ95hrKHQ3QW5gs3gbc18fAKS3Qn5krLWw/exec";
 
-    // Function to handle file upload
-    function uploadFile() {
-      const fileInput = document.getElementById('file-input');
-      const file = fileInput.files[0]; // Get the file selected by the user
+    document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const name = this.name.value.trim();
+      const regid = this.regid.value.trim();
+      const files = document.getElementById("files").files;
+      if (!files.length) return;
 
-      if (!file) {
-        alert('Please select a file.');
-        return;
-      }
+      document.getElementById("progress").innerText = "Uploading files...";
 
-      // Create a new FormData object to send the file
-      const formData = new FormData();
-      formData.append('file', file); // Add file to form data
-      formData.append('filename', file.name); // Add the file's name
+      const fileData = await Promise.all([...files].map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              name: file.name,
+              mimeType: file.type,
+              content: reader.result.split(",")[1]
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      }));
 
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', endpoint, true);
-
-      // Show upload progress
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          document.getElementById('progress-bar').style.width = percent + '%';
-        }
-      });
-
-      // Handle success and error
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          document.getElementById('status').textContent = 'File uploaded successfully!';
-          document.getElementById('status').style.color = 'green';
-        } else {
-          document.getElementById('status').textContent = 'Upload failed.';
-          document.getElementById('status').style.color = 'red';
-        }
+      const payload = {
+        name, regid, files: fileData
       };
 
-      // Handle error
-      xhr.onerror = function() {
-        document.getElementById('status').textContent = 'There was an error during the upload.';
-        document.getElementById('status').style.color = 'red';
-      };
-
-      // Send the form data (the file)
-      xhr.send(formData);
-    }
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }
+      }).then(res => res.json())
+        .then(data => {
+          if (data.status === "success") {
+            document.getElementById("responseMsg").innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+          } else {
+            document.getElementById("responseMsg").innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+          }
+          document.getElementById("progress").innerText = "";
+        }).catch(err => {
+          document.getElementById("responseMsg").innerHTML = `<div class="alert alert-danger">${err}</div>`;
+          document.getElementById("progress").innerText = "";
+        });
+    });
   </script>
-
 </body>
 </html>
